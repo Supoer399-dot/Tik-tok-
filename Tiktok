@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AnyVideo Downloader</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    body {
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .logo span:first-child { color: #7c3aed; }
+    .logo span:last-child { color: #111; }
+    .menu {
+      font-size: 24px;
+      color: #7c3aed;
+      cursor: pointer;
+    }
+    .main {
+      flex: 1;
+      padding: 24px 16px;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .input-box {
+      background: white;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+    .input-box input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      color: #333;
+    }
+    .paste-btn {
+      background: none;
+      border: none;
+      color: #7c3aed;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .download-btn {
+      width: 100%;
+      background: linear-gradient(90deg, #a78bfa, #c084fc);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(167, 139, 250, 0.4);
+      transition: transform 0.15s;
+    }
+    .download-btn:active { transform: scale(0.98); }
+    .download-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .support-box {
+      background: white;
+      border-radius: 14px;
+      padding: 18px 16px;
+      margin-top: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .support-box h3 {
+      font-size: 15px;
+      color: #222;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .platforms {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .platform {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: white;
+      font-weight: 700;
+    }
+    .yt { background: #ff0000; }
+    .fb { background: #1877f2; }
+    .likee { background: linear-gradient(45deg, #ff4d8d, #ff8c42); }
+    .snap { background: #fffc00; color: #000; }
+    .tw { background: #1da1f2; }
+    .status {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      min-height: 24px;
+    }
+    .result {
+      margin-top: 20px;
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      display: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .result video {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    .result a, .quality-btn {
+      display: block;
+      background: #7c3aed;
+      color: white;
+      text-align: center;
+      padding: 12px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 8px;
+      border: none;
+      width: 100%;
+      cursor: pointer;
+      font-size: 15px;
+    }
+    .quality-btn.secondary {
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+    .quality-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .bottom-nav {
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0 18px;
+      border-top: 1px solid #eee;
+      position: sticky;
+      bottom: 0;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #999;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .nav-item.active { color: #7c3aed; }
+    .nav-item svg { width: 24px; height: 24px; }
+    .downloads-list {
+      display: none;
+      padding: 16px;
+    }
+    .downloads-list h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    .dl-item {
+      background: white;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo"><span>AnyVideo</span> <span>Downloader</span></div>
+    <div class="menu">☰</div>
+  </div>
+
+  <div class="main" id="homePage">
+    <div class="input-box">
+      <input type="text" id="urlInput" placeholder="YouTube / TikTok / Instagram / Facebook লিংক পেস্ট করুন">
+      <button class="paste-btn" onclick="pasteLink()">
+        Paste <span>📋</span>
+      </button>
+    </div>
+
+    <button class="download-btn" id="downloadBtn" onclick="startDownload()">
+      <span>↓</span> Download (HD / 4K)
+    </button>
+
+    <div class="status" id="status"></div>
+
+    <div class="result" id="resultBox">
+      <video id="preview" controls></video>
+      <div id="qualityList" class="quality-list"></div>
+    </div>
+
+    <div class="support-box">
+      <h3>Currently we support downloading<br>from the following platforms</h3>
+      <div class="platforms">
+        <!-- TikTok & Instagram logo intentionally removed as requested -->
+        <div class="platform yt">▶</div>
+        <div class="platform fb">f</div>
+        <div class="platform likee">❤</div>
+        <div class="platform snap">👻</div>
+        <div class="platform tw">🐦</div>
+      </div>
+      <p style="font-size:12px;color:#888;margin-top:10px;">
+        YouTube • TikTok • Instagram • Facebook • Twitter/X এবং আরও<br>
+        <strong>HD / 1080p / 4K সাপোর্ট</strong>
+      </p>
+    </div>
+  </div>
+
+  <div class="downloads-list" id="downloadsPage">
+    <h2>Downloads</h2>
+    <div id="dlList"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="showHome()">
+      <svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-item" onclick="showDownloads()">
+      <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+      <span>Downloads</span>
+    </div>
+  </div>
+
+  <script>
+    // Free API that returns multiple qualities including 4K / 1080p
+    const API = 'https://gendownload.com/api/extract';
+
+    function pasteLink() {
+      navigator.clipboard.readText().then(text => {
+        document.getElementById('urlInput').value = text;
+      }).catch(() => {
+        alert('Clipboard access denied. Please paste manually.');
+      });
+    }
+
+    // Quality priority: highest first
+    const qualityOrder = ['2160p', '1440p', '1080p', '720p', '480p', '360p', '240p', '144p'];
+
+    function getBestFormats(formats) {
+      if (!formats || !formats.length) return [];
+      // Only video formats
+      const videos = formats.filter(f => f.type === 'video');
+      // Sort by quality priority
+      videos.sort((a, b) => {
+        const ai = qualityOrder.indexOf(a.label);
+        const bi = qualityOrder.indexOf(b.label);
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      });
+      return videos;
+    }
+
+    async function startDownload() {
+      const url = document.getElementById('urlInput').value.trim();
+      const status = document.getElementById('status');
+      const btn = document.getElementById('downloadBtn');
+      const resultBox = document.getElementById('resultBox');
+      const qualityList = document.getElementById('qualityList');
+
+      if (!url) {
+        status.textContent = 'দয়া করে একটি ভিডিও লিংক দিন';
+        return;
+      }
+
+      const supported = ['youtube.com', 'youtu.be', 'tiktok.com', 'vm.tiktok', 'vt.tiktok',
+                         'instagram.com', 'facebook.com', 'fb.com', 'fb.watch',
+                         'twitter.com', 'x.com', 'likee', 'snapchat.com'];
+      const isSupported = supported.some(domain => url.toLowerCase().includes(domain));
+      if (!isSupported) {
+        status.textContent = 'শুধুমাত্র সাপোর্টেড প্ল্যাটফর্মের লিংক দিন (YT/TT/IG/FB/X)';
+        return;
+      }
+
+      btn.disabled = true;
+      status.textContent = 'প্রসেসিং হচ্ছে... HD/4K খুঁজছি...';
+      resultBox.style.display = 'none';
+      qualityList.innerHTML = '';
+
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        const data = await res.json();
+
+        if (data.formats && data.formats.length > 0) {
+          const videos = getBestFormats(data.formats);
+          const title = data.title || 'Video';
+
+          if (videos.length === 0) {
+            status.textContent = 'ভিডিও ফরম্যাট পাওয়া যায়নি।';
+            btn.disabled = false;
+            return;
+          }
+
+          // Best quality for preview
+          const best = videos[0];
+          status.textContent = `রেডি! সবচেয়ে ভালো কোয়ালিটি: ${best.label}`;
+          
+          const video = document.getElementById('preview');
+          video.src = best.url;
+
+          // Show all quality buttons
+          qualityList.innerHTML = videos.map((f, i) => {
+            const isBest = i === 0;
+            return `
+              <a class="quality-btn ${isBest ? '' : 'secondary'}" 
+                 href="${f.url}" 
+                 download="\( {title.replace(/[^a-z0-9]/gi, '_').slice(0, 40)}_ \){f.label}.mp4">
+                \( {isBest ? '↓ ' : ''} \){f.label} Download ${isBest ? '(Best)' : ''}
+              </a>
+            `;
+          }).join('');
+
+          resultBox.style.display = 'block';
+
+          // Save best to history
+          saveToHistory({
+            title: title + ` (${best.label})`,
+            url: best.url,
+            time: new Date().toLocaleString()
+          });
+        } else {
+          status.textContent = 'ভিডিও পাওয়া যায়নি। অন্য লিংক চেষ্টা করুন বা পরে আবার চেষ্টা করুন।';
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = 'এরর! API সমস্যা হতে পারে। পরে চেষ্টা করুন।';
+      }
+
+      btn.disabled = false;
+    }
+
+    function saveToHistory(item) {
+      let list = JSON.parse(localStorage.getItem('downloads') || '[]');
+      list.unshift(item);
+      if (list.length > 20) list = list.slice(0, 20);
+      localStorage.setItem('downloads', JSON.stringify(list));
+    }
+
+    function showHome() {
+      document.getElementById('homePage').style.display = 'block';
+      document.getElementById('downloadsPage').style.display = 'none';
+      document.querySelectorAll('.nav-item')[0].classList.add('active');
+      document.querySelectorAll('.nav-item')[1].classList.remove('active');
+    }
+
+    function showDownloads() {
+      document.getElementById('homePage').style.display = 'none';
+      document.getElementById('downloadsPage').style.display = 'block';
+      document.querySelectorAll('.nav-item')[0].classList.remove('active');
+      document.querySelectorAll('.nav-item')[1].classList.add('active');
+
+      const list = JSON.parse(localStorage.getItem('downloads') || '[]');
+      const container = document.getElementById('dlList');
+      if (list.length === 0) {
+        container.innerHTML = '<p style="color:#888;text-align:center;">এখনো কোনো ডাউনলোড নেই</p>';
+        return;
+      }
+      container.innerHTML = list.map(item => `
+        <div class="dl-item">
+          <div>
+            <div style="font-weight:600;margin-bottom:4px;">${item.title.slice(0,50)}</div>
+            <div style="font-size:12px;color:#888;">${item.time}</div>
+          </div>
+          <a href="${item.url}" download style="color:#7c3aed;font-weight:600;">↓</a>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
