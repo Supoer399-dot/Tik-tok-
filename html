@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AnyVideo Downloader</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics-compat.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -242,7 +247,6 @@
     <div class="support-box">
       <h3>Currently we support downloading<br>from the following platforms</h3>
       <div class="platforms">
-        <!-- TikTok & Instagram logo intentionally removed as requested -->
         <div class="platform yt">▶</div>
         <div class="platform fb">f</div>
         <div class="platform likee">❤</div>
@@ -273,6 +277,24 @@
   </div>
 
   <script>
+    // ====================== FIREBASE CONFIG ======================
+    // নিজের Firebase প্রজেক্টের কনফিগ এখানে বসাও
+    const firebaseConfig = {
+  apiKey: "AIzaSyDAW5Ips9884G4jBiRzVibMLK8wYB4w3bM",
+  authDomain: "tiktok-90d36.firebaseapp.com",
+  databaseURL: "https://tiktok-90d36-default-rtdb.firebaseio.com",
+  projectId: "tiktok-90d36",
+  storageBucket: "tiktok-90d36.firebasestorage.app",
+  messagingSenderId: "731946516852",
+  appId: "1:731946516852:web:5ee19e2d1245165ce6ac21",
+  measurementId: "G-707VLCE5GK"
+};
+
+    // Firebase Initialize
+    firebase.initializeApp(firebaseConfig);
+    const analytics = firebase.analytics();
+    // =============================================================
+
     // Free API that returns multiple qualities including 4K / 1080p
     const API = 'https://gendownload.com/api/extract';
 
@@ -289,9 +311,7 @@
 
     function getBestFormats(formats) {
       if (!formats || !formats.length) return [];
-      // Only video formats
       const videos = formats.filter(f => f.type === 'video');
-      // Sort by quality priority
       videos.sort((a, b) => {
         const ai = qualityOrder.indexOf(a.label);
         const bi = qualityOrder.indexOf(b.label);
@@ -344,14 +364,12 @@
             return;
           }
 
-          // Best quality for preview
           const best = videos[0];
           status.textContent = `রেডি! সবচেয়ে ভালো কোয়ালিটি: ${best.label}`;
           
           const video = document.getElementById('preview');
           video.src = best.url;
 
-          // Show all quality buttons
           qualityList.innerHTML = videos.map((f, i) => {
             const isBest = i === 0;
             return `
@@ -371,6 +389,15 @@
             url: best.url,
             time: new Date().toLocaleString()
           });
+
+          // Optional: Firebase Analytics event
+          analytics.logEvent('video_download', {
+            quality: best.label,
+            platform: url.includes('youtube') ? 'youtube' : 
+                      url.includes('tiktok') ? 'tiktok' : 
+                      url.includes('instagram') ? 'instagram' : 'other'
+          });
+
         } else {
           status.textContent = 'ভিডিও পাওয়া যায়নি। অন্য লিংক চেষ্টা করুন বা পরে আবার চেষ্টা করুন।';
         }
